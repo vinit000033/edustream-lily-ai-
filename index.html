@@ -73,14 +73,15 @@
       z-index:1;
     }
     
-    /* Mobile-first responsive design */
+    /* Mobile-first responsive design - Hide left sidebar completely */
     @media (max-width:768px){ 
       .app{
         grid-template-columns:1fr; 
-        grid-template-rows: auto 1fr;
-        gap:16px;
-        padding:16px;
-        padding-bottom: 80px;
+        gap:0;
+        padding:0;
+      }
+      .left{
+        display:none !important;
       }
     }
 
@@ -98,83 +99,6 @@
       box-shadow:0 8px 32px var(--shadow);
       position:sticky;
       top:24px;
-    }
-    
-    /* Mobile sidebar - becomes bottom nav */
-    @media (max-width:768px){
-      .left{
-        position:fixed;
-        bottom:16px;
-        left:16px;
-        right:16px;
-        flex-direction:row;
-        height:auto;
-        border-radius:20px;
-        z-index:100;
-        padding:16px;
-        height:70px;
-        top:auto;
-        justify-content:space-between;
-        align-items:center;
-      }
-      
-      .brand{
-        flex:0 0 auto;
-        padding-bottom:0;
-        border-bottom:none;
-        gap:12px;
-      }
-      
-      .logo{
-        width:44px;
-        height:44px;
-        font-size:20px;
-      }
-      
-      .brand-text .title{
-        font-size:16px;
-      }
-      
-      .brand-text .subtitle{
-        display:none;
-      }
-      
-      .nav-actions{
-        flex-direction:row;
-        margin-top:0;
-        gap:8px;
-      }
-      
-      .nav-btn{
-        padding:12px 16px;
-        font-size:12px;
-        text-align:center;
-        flex:1;
-      }
-      
-      .status-card{
-        display:none;
-      }
-    }
-    
-    /* Extra small screens */
-    @media (max-width:480px){
-      .left{
-        padding:12px;
-      }
-      
-      .brand-text .title{
-        display:none;
-      }
-      
-      .nav-btn{
-        padding:10px 12px;
-        font-size:11px;
-      }
-      
-      .nav-btn span{
-        display:none;
-      }
     }
 
     .brand{
@@ -300,17 +224,13 @@
       box-shadow:0 8px 32px var(--shadow);
     }
     
-    /* Mobile center chat */
+    /* Mobile center chat - full screen */
     @media (max-width:768px){
       .center{
-        height:calc(100vh - 170px);
-        border-radius:16px;
-      }
-    }
-    
-    @media (max-width:480px){
-      .center{
-        height:calc(100vh - 150px);
+        height:100vh;
+        border-radius:0;
+        border:none;
+        box-shadow:none;
       }
     }
 
@@ -758,7 +678,7 @@
     
     /* Mobile scroll button */
     @media (max-width:768px){
-      .scroll-bottom{right:20px;bottom:100px}
+      .scroll-bottom{right:20px;bottom:40px}
     }
     
     @media (max-width:480px){
@@ -766,7 +686,7 @@
         width:44px;
         height:44px;
         font-size:18px;
-        bottom:90px;
+        bottom:30px;
       }
     }
 
@@ -832,9 +752,38 @@
       opacity:1;
       transform:translateX(-50%) translateY(0);
     }
+
+    /* Mobile Menu Button */
+    .mobile-menu-btn{
+      display:none;
+      position:fixed;
+      top:20px;
+      left:20px;
+      width:44px;
+      height:44px;
+      border-radius:12px;
+      background:var(--accent);
+      border:1px solid var(--glass-border);
+      color:#fff;
+      font-size:20px;
+      cursor:pointer;
+      z-index:1000;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 4px 16px var(--accent-glow);
+    }
+    
+    @media (max-width:768px){
+      .mobile-menu-btn{
+        display:flex;
+      }
+    }
   </style>
 </head>
 <body>
+
+<!-- Mobile Menu Button -->
+<button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
 
 <div class="app">
   <!-- LEFT SIDEBAR -->
@@ -912,6 +861,7 @@ const inputEl = document.getElementById("msgInput");
 const sendBtn = document.getElementById("sendBtn");
 const scrollBottomBtn = document.getElementById("scrollBottom");
 const toastEl = document.getElementById("toast");
+const mobileMenuBtn = document.getElementById("mobileMenuBtn");
 
 function decodeEscapedUnicode(str){
   if(!str||typeof str!=="string") return str;
@@ -941,6 +891,7 @@ function showToast(message, duration = 3000) {
 
 /* ---------- App State ---------- */
 let chat = [];
+let isMobileMenuOpen = false;
 
 /* ---------- History ---------- */
 function loadHistory(){
@@ -1109,6 +1060,29 @@ async function sendMessage(){
   }
 }
 
+/* ---------- Mobile Menu ---------- */
+function toggleMobileMenu() {
+  const leftSidebar = document.querySelector('.left');
+  if (isMobileMenuOpen) {
+    leftSidebar.style.display = 'none';
+    mobileMenuBtn.textContent = '☰';
+    showToast('Menu closed');
+  } else {
+    leftSidebar.style.display = 'flex';
+    leftSidebar.style.position = 'fixed';
+    leftSidebar.style.top = '0';
+    leftSidebar.style.left = '0';
+    leftSidebar.style.right = '0';
+    leftSidebar.style.bottom = '0';
+    leftSidebar.style.zIndex = '999';
+    leftSidebar.style.borderRadius = '0';
+    leftSidebar.style.height = '100vh';
+    mobileMenuBtn.textContent = '✕';
+    showToast('Menu opened');
+  }
+  isMobileMenuOpen = !isMobileMenuOpen;
+}
+
 /* ---------- UI Event Handlers ---------- */
 sendBtn.addEventListener("click", sendMessage);
 
@@ -1142,6 +1116,9 @@ document.addEventListener("keydown", e => {
   }
 });
 
+// Mobile menu button
+mobileMenuBtn.addEventListener("click", toggleMobileMenu);
+
 document.getElementById("newChat").addEventListener("click", ()=>{
   if(chat.length > 2 && !confirm("Start a new conversation? Current chat will be saved in history.")) return;
   chat = [];
@@ -1158,6 +1135,11 @@ document.getElementById("newChat").addEventListener("click", ()=>{
   saveHistory();
   refresh();
   showToast("New conversation started!");
+  
+  // Close mobile menu if open
+  if (isMobileMenuOpen) {
+    toggleMobileMenu();
+  }
 });
 
 document.getElementById("clearAll").addEventListener("click", ()=>{
@@ -1167,6 +1149,11 @@ document.getElementById("clearAll").addEventListener("click", ()=>{
   localStorage.removeItem(STORAGE_KEY);
   refresh();
   showToast("Chat history cleared");
+  
+  // Close mobile menu if open
+  if (isMobileMenuOpen) {
+    toggleMobileMenu();
+  }
 });
 
 document.getElementById("toggleTheme").addEventListener("click", ()=>{
@@ -1174,6 +1161,11 @@ document.getElementById("toggleTheme").addEventListener("click", ()=>{
   const theme = document.documentElement.classList.contains("light") ? "light" : "dark";
   localStorage.setItem("edustream_theme", theme);
   showToast(`${theme === 'light' ? 'Light' : 'Dark'} theme activated`);
+  
+  // Close mobile menu if open
+  if (isMobileMenuOpen) {
+    toggleMobileMenu();
+  }
 });
 
 /* ---------- Scroll Button ---------- */
